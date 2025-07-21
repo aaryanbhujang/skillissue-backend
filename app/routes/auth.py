@@ -5,7 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
 
 # Initialize Firebase Admin once (move this to a separate init module in prod)
-cred = credentials.Certificate("skillissue-ea816-firebase-adminsdk-fbsvc-8cc10a29d9.json")
+cred = credentials.Certificate("/etc/secrets/skillissue-ea816-firebase-adminsdk-fbsvc-8cc10a29d9.json")
 firebase_admin.initialize_app(cred)
 
 router = APIRouter()
