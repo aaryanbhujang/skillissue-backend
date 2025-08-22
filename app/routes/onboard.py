@@ -1,16 +1,12 @@
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field 
 from typing import List, Dict, Optional
 from google.cloud import firestore
-<<<<<<< HEAD
 from app.models.firebase import db
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
 from sentence_transformers import SentenceTransformer
 import numpy as np
-=======
-from app.models.firebase import db, get_user_details
->>>>>>> 36a86cbb887ea782f654eff741fbce0812011a77
 
 router = APIRouter()
 
@@ -40,13 +36,11 @@ def ensure_collections():
 ensure_collections()
 
 
-# ---- Pydantic Schemas ----
 class ProjectSchema(BaseModel):
     title: str
     description: str
-    tech_stack: List[str] = Field(default_factory=list)
-    requirements: List[str] = Field(default_factory=list)
-
+    tech_stack: List[str]
+    requirements: List[str]
 
 class OnboardingRequest(BaseModel):
     name: str
@@ -57,11 +51,11 @@ class OnboardingRequest(BaseModel):
     )
     skills: Optional[List[str]] = Field(
         default=None,
-        description="List of skill names; null if none"
+        description="List of skill IDs; null if none"
     )
     preferences: Optional[List[str]] = Field(
         default=None,
-        description="List of preference names; null if none"
+        description="List of preference IDs; null if none"
     )
     projects: Optional[Dict[str, ProjectSchema]] = Field(
         default=None,
@@ -69,7 +63,6 @@ class OnboardingRequest(BaseModel):
     )
 
 
-<<<<<<< HEAD
 # Embedding utility
 def embed(values: list[str], weights: list[float] | None = None) -> list[float]:
     if not values:
@@ -84,30 +77,15 @@ def embed(values: list[str], weights: list[float] | None = None) -> list[float]:
     return final_vector.tolist()
 
 
-=======
-# ---- Endpoint ----
->>>>>>> 36a86cbb887ea782f654eff741fbce0812011a77
 @router.post("/register")
-def onboard_user(request: Request, data: OnboardingRequest):
+def onboardUser(request: Request, data: OnboardingRequest):
+    print("Onboarding user with data:", data)
     uid = request.session.get("user_uid")
     if not uid:
         raise HTTPException(status_code=401, detail="Not verified, innit")
 
-<<<<<<< HEAD
     # Firestore: Create/update user document
     user_ref = db.collection("users").document(uid)
-=======
-    # Make sure user exists in Firebase Auth
-    try:
-        userdetails = get_user_details(uid)
-        print("User details from Firebase:", userdetails)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=f"User not found: {str(e)}")
-
-    user_ref = db.collection("users").document(uid)
-
-    # Build user payload
->>>>>>> 36a86cbb887ea782f654eff741fbce0812011a77
     payload = {
         "name": data.name,
         "email": data.email,
@@ -123,7 +101,6 @@ def onboard_user(request: Request, data: OnboardingRequest):
     if data.projects is not None:
         payload["projects"] = {pid: proj.dict() for pid, proj in data.projects.items()}
 
-<<<<<<< HEAD
     user_ref.set(payload, merge=True)
 
     # Firestore: user_skills & user_preferences
@@ -159,7 +136,7 @@ def onboard_user(request: Request, data: OnboardingRequest):
         qdrant_client.upsert(
             collection_name="users",
             points=[{
-                "id": uid,   # ✅ use UID from Firestore
+                "id": uid,   # Use UID from Firestore
                 "vector": user_vector,
                 "payload": {
                     "username": data.name,
@@ -184,7 +161,7 @@ def onboard_user(request: Request, data: OnboardingRequest):
             qdrant_client.upsert(
                 collection_name="projects",
                 points=[{
-                    "id": pid,   # ✅ use project ID, not title
+                    "id": pid,   #Use project ID, not title
                     "vector": proj_vector,
                     "payload": {
                         "title": proj.title,
@@ -196,41 +173,3 @@ def onboard_user(request: Request, data: OnboardingRequest):
             )
 
     return {"message": "Onboarding complete", "uid": uid}
-=======
-    # Save user doc
-    user_ref.set(payload, merge=True)
-
-    # ---- Handle global projects ----
-    if data.projects:
-        batch = db.batch()
-        for pid, proj in data.projects.items():
-            proj_ref = db.collection("projects").document(pid)
-            batch.set(proj_ref, {
-                "created_by": uid,
-                "title": proj.title,
-                "desc": proj.description,
-                "tech_stack": proj.tech_stack,
-                "requirements": proj.requirements,
-            }, merge=True)
-        batch.commit()
-
-    # ---- Handle global skills ----
-    if data.skills:
-        batch = db.batch()
-        for skill in set(data.skills):
-            skill_id = skill.strip().lower()
-            skill_ref = db.collection("skills").document(skill_id)
-            batch.set(skill_ref, {"name": skill}, merge=True)
-        batch.commit()
-
-    # ---- Handle global preferences ----
-    if data.preferences:
-        batch = db.batch()
-        for pref in set(data.preferences):
-            pref_id = pref.strip().lower()
-            pref_ref = db.collection("preferences").document(pref_id)
-            batch.set(pref_ref, {"name": pref}, merge=True)
-        batch.commit()
-
-    return {"message": "Onboarding complete", "uid": uid}
->>>>>>> 36a86cbb887ea782f654eff741fbce0812011a77
