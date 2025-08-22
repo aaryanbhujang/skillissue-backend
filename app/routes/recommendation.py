@@ -18,7 +18,9 @@ def get_recommendations(request: Request):
         print("User details from Firebase:", userdetails)
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"User not found: {str(e)}")
-
+    user_profile = db.collection("users").document(uid)
+    if user_profile is None:
+        raise HTTPException(status_code=404, detail="User profile not found")
     # TODO: Implement recommendation logic here
 
     return {"message": "Recommendations fetched successfully", "data": []}
