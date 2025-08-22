@@ -1,26 +1,41 @@
-# app/routes/auth.py
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-import firebase_admin
-from firebase_admin import credentials, auth as firebase_auth
-
-# Initialize Firebase Admin once (move this to a separate init module in prod)
-cred = credentials.Certificate("/etc/secrets/skillissue-ea816-firebase-adminsdk-fbsvc-8cc10a29d9.json")
-firebase_admin.initialize_app(cred)
+from app.models.firebase import verify_token  # your custom token verifier
 
 router = APIRouter()
 
 class TokenRequest(BaseModel):
     id_token: str
 
+
 @router.post("/verify")
-def verify_user(data: TokenRequest):
+def verify_user(data: TokenRequest, request: Request):
     try:
-        decoded_token = firebase_auth.verify_id_token(data.id_token)
-        print(decoded_token)
+        decoded_token = verify_token(data.id_token)
+        if not decoded_token:
+            raise HTTPException(status_code=403, detail="Invalid or expired token")
+        
         uid = decoded_token["uid"]
         email = decoded_token.get("email")
-        return {"uid": uid, "email": email}
+
+        # Set session
+        request.session["user_uid"] = uid
+        print(f"Session set for UID: {uid}")  # Debug logging
+
+        return {"message": "Logged in", "uid": uid}
     except Exception as e:
         print("Token verification failed:", str(e))
         raise HTTPException(status_code=401, detail="Invalid token")
+
+@router.get("/session")
+def check_session(request: Request):
+    uid = request.session.get("user_uid")
+    print(f"Session check - UID: {uid}")  # Debug logging
+    if uid:
+        return {"logged_in": True, "uid": uid}
+    return {"logged_in": False}
+
+@router.post("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return {"message": "Logged out"}
