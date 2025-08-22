@@ -15,8 +15,8 @@ embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Connect to Qdrant
 qdrant_client = QdrantClient(
-    url="", 
-    api_key="",
+    url="https://220a92ad-60e4-46d4-ad37-55ef2981f953.europe-west3-0.gcp.cloud.qdrant.io:6333", 
+    api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.Vf-nEfun8kIzTeP9-MHwmJk3jVy2oyways2cyUXAJm8",
 )
 
 # Ensure collections exist
