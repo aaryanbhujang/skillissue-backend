@@ -4,3 +4,8 @@ firebase-admin
 pydantic
 starlette
 firestore
+
+itsdangerous
+sentence_transformers
+qdrant_client
+
