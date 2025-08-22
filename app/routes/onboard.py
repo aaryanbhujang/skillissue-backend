@@ -84,7 +84,13 @@ def onboardUser(request: Request, data: OnboardingRequest):
     if not uid:
         raise HTTPException(status_code=401, detail="Not verified, innit")
 
-    # Firestore: Create/update user document
+    # Make sure user exists in Firebase Auth
+    try:
+        userdetails = get_user_details(uid)
+        print("User details from Firebase:", userdetails)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"User not found: {str(e)}")
+
     user_ref = db.collection("users").document(uid)
     payload = {
         "name": data.name,
