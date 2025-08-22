@@ -76,6 +76,18 @@ def embed(values: list[str], weights: list[float] | None = None) -> list[float]:
         final_vector = vectors.mean(axis=0)
     return final_vector.tolist()
 
+@router.get("/check")
+def check_user_onboarding(request: Request):
+    uid = request.session.get("user_uid")
+    if not uid:
+        raise HTTPException(status_code=401, detail="Not verified, innit")
+
+    user_ref = db.collection("users").document(uid)
+    user_data = user_ref.get()
+    if not user_data.exists:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"onboarded": user_data.get("onboarded", False)}
 
 @router.post("/register")
 def onboard_user(request: Request, data: OnboardingRequest):
