@@ -15,8 +15,8 @@ embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Connect to Qdrant
 qdrant_client = QdrantClient(
-    url="https://220a92ad-60e4-46d4-ad37-55ef2981f953.europe-west3-0.gcp.cloud.qdrant.io:6333", 
-    api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.Vf-nEfun8kIzTeP9-MHwmJk3jVy2oyways2cyUXAJm8",
+    url="", 
+    api_key="",
 )
 
 # Ensure collections exist
@@ -142,8 +142,6 @@ def onboard_user(request: Request, data: OnboardingRequest):
             pref_ref = db.collection("preferences").document(pref_id)
             batch.set(pref_ref, {"name": pref}, merge=True)
         batch.commit()
-
-    return {"message": "Onboarding complete", "uid": uid}
 
     # Only after Firestore writes succeed → push to Qdrant
 
