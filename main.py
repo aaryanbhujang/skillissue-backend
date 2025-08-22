@@ -19,6 +19,7 @@ app.add_middleware(
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET", "dev_secret"))
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(onboard.router, prefix="/onboard", tags=["onboard"])
+app.include_router(onboard.router, prefix="/recommendation", tags=["recommendation"])
 @app.get("/")
 def home():
     return {"message": "I hope this works "}
