@@ -61,7 +61,7 @@ def get_recommendations(request: Request):
                 matches.append({
                     "id": result.id,
                     "score": result.score,
-                    "user": user_info  # 🔥 actual Firestore user data
+                    "user": user_info  # Actual Firestore user data
                 })
 
     return {"message": "Recommendations fetched successfully", "data": matches}
